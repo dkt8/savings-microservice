@@ -1,0 +1,139 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  customer-service:
+    build: ./services/customer-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/customer_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  product-service:
+    build: ./services/product-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/product_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  account-service:
+    build: ./services/account-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/account_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  transaction-service:
+    build: ./services/transaction-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/transaction_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  savings-contract-service:
+    build: ./services/savings-contract-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/contract_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  interest-calculation-service:
+    build: ./services/interest-calculation-service
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/interest_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  saving-lifecycle-service:
+    build: ./services/saving-lifecycle-service
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lifecycle_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8081
+      CUSTOMER_SERVICE_URL: http://customer-service:8082
+      PRODUCT_SERVICE_URL: http://product-service:8083
+      ACCOUNT_SERVICE_URL: http://account-service:8084
+      TRANSACTION_SERVICE_URL: http://transaction-service:8085
+      CONTRACT_SERVICE_URL: http://savings-contract-service:8086
+      INTEREST_SERVICE_URL: http://interest-calculation-service:8087
+      LIFECYCLE_SERVICE_URL: http://saving-lifecycle-service:8088
+    depends_on:
+      - auth-service
+      - customer-service
+      - product-service
+      - account-service
+      - transaction-service
+      - savings-contract-service
+      - interest-calculation-service
+      - saving-lifecycle-service
+
+volumes:
+  postgres_data:
