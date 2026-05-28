@@ -1,7 +1,7 @@
 import React from "react";
 import { Layout, Menu } from "antd";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { BankOutlined, ShoppingOutlined, DashboardOutlined } from "@ant-design/icons";
+import { BankOutlined, ShoppingOutlined, DashboardOutlined, ReadOutlined } from "@ant-design/icons";
 
 const { Header, Content, Sider } = Layout;
 
@@ -13,6 +13,7 @@ export default function MainLayout() {
     { key: "/products", icon: <ShoppingOutlined />, label: <Link to="/products">Sản phẩm tiết kiệm</Link> },
     { key: "/accounts", icon: <BankOutlined />, label: <Link to="/accounts">Danh sách tài khoản</Link> },
     { key: "/accounts/open", icon: <BankOutlined />, label: <Link to="/accounts/open">Mở tài khoản</Link> },
+    { key: "/readme", icon: <ReadOutlined />, label: <Link to="/readme">README</Link> },
   ];
 
   return (

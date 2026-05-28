@@ -8,6 +8,7 @@ import CreateProductPage from "./pages/products/CreateProductPage";
 import OpenAccountPage from "./pages/accounts/OpenAccountPage";
 import AccountListPage from "./pages/accounts/AccountListPage";
 import AccountDetailPage from "./pages/accounts/AccountDetailPage";
+import ReadmePage from "./pages/ReadmePage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="accounts" element={<AccountListPage />} />
             <Route path="accounts/open" element={<OpenAccountPage />} />
             <Route path="accounts/:id" element={<AccountDetailPage />} />
+            <Route path="readme" element={<ReadmePage />} />
           </Route>
         </Routes>
       </BrowserRouter>
