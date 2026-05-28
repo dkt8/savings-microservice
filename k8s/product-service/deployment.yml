@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: microbank
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: product-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://product-db:5432/productservicebank
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: postgres
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: none
+            - name: SPRING_SQL_INIT_MODE
+              value: always

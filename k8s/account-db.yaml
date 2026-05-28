@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: account-db-init-sql
+  namespace: microbank
+data:
+  init.sql: |-
+    CREATE TABLE IF NOT EXISTS saving_accounts (
+        id UUID PRIMARY KEY,
+        account_no VARCHAR(50) UNIQUE,
+        customer_id VARCHAR(50),
+        product_code VARCHAR(50),
+        balance NUMERIC(18,2),
+        currency VARCHAR(10),
+        status VARCHAR(30),
+        maturity_date DATE,
+        created_at TIMESTAMP
+    );
+
+    INSERT INTO saving_accounts (id, account_no, customer_id, product_code, balance, currency, status, maturity_date, created_at)
+    VALUES
+        ('8a7b9c2f-4f0d-4b0c-8dee-9c9670f67313', 'SA202600000001', 'KH001', 'TIET_KIEM_12TH', 10000000.00, 'VND', 'ACTIVE', CURRENT_DATE + INTERVAL '12 months', CURRENT_TIMESTAMP),
+        ('1b3c6d78-91a2-4f8e-b5a2-7e0a1c2d3f45', 'SA202600000002', 'KH002', 'TIET_KIEM_06TH', 5000000.00, 'VND', 'FROZEN', CURRENT_DATE + INTERVAL '6 months', CURRENT_TIMESTAMP),
+        ('2c4e8f90-a1b2-4c3d-9e0f-8a7b6c5d4e12', 'SA202600000003', 'KH003', 'TIET_KIEM_24TH', 20000000.00, 'VND', 'PENDING_APPROVAL', CURRENT_DATE + INTERVAL '24 months', CURRENT_TIMESTAMP);
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: account-db-pvc
+  namespace: microbank
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-db
+  namespace: microbank
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-db
+  template:
+    metadata:
+      labels:
+        app: account-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          env:
+            - name: POSTGRES_DB
+              value: accountservicebank
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: init.sql
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: account-db-pvc
+        - name: init-sql
+          configMap:
+            name: account-db-init-sql
+            items:
+              - key: init.sql
+                path: init.sql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: account-db
+  namespace: microbank
+spec:
+  selector:
+    app: account-db
+  ports:
+    - port: 5432
+      targetPort: 5432

@@ -1,139 +1,250 @@
+volumes:
+  product_db_data:
+  account_db_data:
+
+networks:
+  microservice-net:
+    driver: bridge
+
 services:
-  postgres:
+
+  # =====================================================
+  # PRODUCT DATABASE
+  # =====================================================
+  product-db:
     image: postgres:16
+    container_name: product-db
+
+    restart: always
+
+    networks:
+      - microservice-net
+
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: productservicebank
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
     ports:
-      - "5432:5432"
+      - "5433:5432"
+
     volumes:
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
-      - postgres_data:/var/lib/postgresql/data
+      - product_db_data:/var/lib/postgresql/data
+      - ./backend/productservicebank/init.sql:/docker-entrypoint-initdb.d/init.sql
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d productservicebank"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  auth-service:
-    build: ./services/auth-service
-    ports:
-      - "8081:8081"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
-    depends_on:
-      postgres:
-        condition: service_healthy
+  # =====================================================
+  # ACCOUNT DATABASE
+  # =====================================================
+  account-db:
+    image: postgres:16
+    container_name: account-db
 
-  customer-service:
-    build: ./services/customer-service
-    ports:
-      - "8082:8082"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/customer_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
-    depends_on:
-      postgres:
-        condition: service_healthy
+    restart: always
 
+    networks:
+      - microservice-net
+
+    environment:
+      POSTGRES_DB: accountservicebank
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - account_db_data:/var/lib/postgresql/data
+      - ./backend/accountservicebank/db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d accountservicebank"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # =====================================================
+  # PRODUCT SERVICE
+  # =====================================================
   product-service:
-    build: ./services/product-service
-    ports:
-      - "8083:8083"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/product_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
+    build:
+      context: ./backend/productservicebank
+      dockerfile: Dockerfile
+
+    container_name: product-service
+
+    restart: always
+
+    networks:
+      - microservice-net
+
     depends_on:
-      postgres:
+      product-db:
         condition: service_healthy
 
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://product-db:5432/productservicebank
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_SQL_INIT_MODE: always
+
+    ports:
+      - "8081:8080"
+
+  # =====================================================
+  # ACCOUNT SERVICE
+  # =====================================================
   account-service:
-    build: ./services/account-service
-    ports:
-      - "8084:8084"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/account_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
+    build:
+      context: ./backend/accountservicebank
+      dockerfile: Dockerfile
+
+    container_name: account-service
+
+    restart: always
+
+    networks:
+      - microservice-net
+
     depends_on:
-      postgres:
+      account-db:
         condition: service_healthy
 
-  transaction-service:
-    build: ./services/transaction-service
-    ports:
-      - "8085:8085"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/transaction_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SPRING_DATASOURCE_URL: jdbc:postgresql://account-db:5432/accountservicebank
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
 
-  savings-contract-service:
-    build: ./services/savings-contract-service
     ports:
-      - "8086:8086"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/contract_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - "8082:8080"
 
-  interest-calculation-service:
-    build: ./services/interest-calculation-service
-    ports:
-      - "8087:8087"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/interest_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
-    depends_on:
-      postgres:
-        condition: service_healthy
+  # =====================================================
+  # KONG API GATEWAY (DB-LESS)
+  # =====================================================
+  kong:
+    image: kong:3.8
+    container_name: kong
 
-  saving-lifecycle-service:
-    build: ./services/saving-lifecycle-service
-    ports:
-      - "8088:8088"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lifecycle_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
-    depends_on:
-      postgres:
-        condition: service_healthy
+    restart: always
 
-  api-gateway:
-    build: ./services/api-gateway
-    ports:
-      - "8080:8080"
-    environment:
-      AUTH_SERVICE_URL: http://auth-service:8081
-      CUSTOMER_SERVICE_URL: http://customer-service:8082
-      PRODUCT_SERVICE_URL: http://product-service:8083
-      ACCOUNT_SERVICE_URL: http://account-service:8084
-      TRANSACTION_SERVICE_URL: http://transaction-service:8085
-      CONTRACT_SERVICE_URL: http://savings-contract-service:8086
-      INTEREST_SERVICE_URL: http://interest-calculation-service:8087
-      LIFECYCLE_SERVICE_URL: http://saving-lifecycle-service:8088
+    networks:
+      - microservice-net
+
     depends_on:
-      - auth-service
-      - customer-service
       - product-service
       - account-service
-      - transaction-service
-      - savings-contract-service
-      - interest-calculation-service
-      - saving-lifecycle-service
 
-volumes:
-  postgres_data:
+    environment:
+      KONG_DATABASE: "off"
+
+      KONG_DECLARATIVE_CONFIG: /opt/kong/kong.yml
+      KONG_STATUS_LISTEN: 0.0.0.0:8100
+
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+
+    volumes:
+      - ./kong/kong.yml:/opt/kong/kong.yml:ro
+
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8443:8443"
+      - "8444:8444"
+
+  # =====================================================
+  # FRONTEND (VITE + NGINX)
+  # =====================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+
+    container_name: frontend
+
+    restart: always
+
+    networks:
+      - microservice-net
+
+    depends_on:
+      - kong
+
+    ports:
+      - "3000:80"
+
+  # =====================================================
+  # PROMETHEUS
+  # =====================================================
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+
+    restart: always
+
+    networks:
+      - microservice-net
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  load-generator:
+    image: python:3.12-alpine
+    container_name: load-generator
+
+    restart: "no"
+
+    networks:
+      - microservice-net
+
+    depends_on:
+      - kong
+
+    volumes:
+      - ./monitoring/load-generator.sh:/load-generator.sh:ro
+
+    entrypoint: ["sh", "/load-generator.sh"]
+
+  # =====================================================
+  # GRAFANA
+  # =====================================================
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+
+    restart: always
+
+    networks:
+      - microservice-net
+
+    ports:
+      - "3001:3000"
+
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_DASHBOARDS_JSON_ENABLED: "true"
+      GF_DASHBOARDS_JSON_PATH: /var/lib/grafana/dashboards
+
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro

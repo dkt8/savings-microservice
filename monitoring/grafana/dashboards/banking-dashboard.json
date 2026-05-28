@@ -1,0 +1,142 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_count{application=\"productservicebank\"}[5m]))", "legendFormat": "product_req_sec", "refId": "A"}],
+      "title": "Product Service Request Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_sum{application=\"productservicebank\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"productservicebank\"}[5m]))", "legendFormat": "avg_latency_s", "refId": "A"}],
+      "title": "Product Service Avg Latency (s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "id": 3,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_count{application=\"productservicebank\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"productservicebank\"}[5m])) * 100", "legendFormat": "5xx %", "refId": "A"}],
+      "title": "Product Service 5xx Error Rate (%)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "id": 4,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(jvm_memory_used_bytes{application=\"productservicebank\",area=\"heap\"}) / 1024 / 1024", "legendFormat": "heap_mb", "refId": "A"}],
+      "title": "Product Service Heap Memory (MB)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "id": 5,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "process_cpu_usage{application=\"productservicebank\"} * 100", "legendFormat": "cpu_percent", "refId": "A"}],
+      "title": "Product Service CPU Usage (%)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "id": 6,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_count{application=\"accountservicebank\"}[5m]))", "legendFormat": "account_req_sec", "refId": "A"}],
+      "title": "Account Service Request Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "id": 7,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_sum{application=\"accountservicebank\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"accountservicebank\"}[5m]))", "legendFormat": "avg_latency_s", "refId": "A"}],
+      "title": "Account Service Avg Latency (s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+      "id": 8,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_count{application=\"accountservicebank\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"accountservicebank\"}[5m])) * 100", "legendFormat": "5xx %", "refId": "A"}],
+      "title": "Account Service 5xx Error Rate (%)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+      "id": 9,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "jvm_threads_live_threads{application=\"accountservicebank\"}", "legendFormat": "live_threads", "refId": "A"}],
+      "title": "Account Service Live Threads",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+      "id": 10,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(rate(kong_http_requests_total[5m]))", "legendFormat": "kong_req_sec", "refId": "A"}],
+      "title": "Kong Request Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40},
+      "id": 11,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum(rate(kong_upstream_latency_sum[5m])) / sum(rate(kong_upstream_latency_count[5m])) * 1000", "legendFormat": "upstream_latency_ms", "refId": "A"}],
+      "title": "Kong Upstream Latency (ms)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {"defaults": {"custom": {}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 24, "x": 12, "y": 40},
+      "id": 12,
+      "options": {"legend": {"displayMode": "table", "placement": "bottom"}, "tooltip": {"mode": "single"}},
+      "targets": [{"expr": "sum by (status)(rate(kong_http_requests_total[5m]))", "legendFormat": "status {{status}}", "refId": "A"}],
+      "title": "Kong Status Code Distribution",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 41,
+  "style": "dark",
+  "tags": ["banking", "monitoring"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {"refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]},
+  "timezone": "browser",
+  "title": "Banking Microservice Monitoring",
+  "uid": "banking-monitoring-dashboard",
+  "version": 1
+}

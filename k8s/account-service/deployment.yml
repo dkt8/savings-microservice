@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-service
+  namespace: microbank
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-service
+  template:
+    metadata:
+      labels:
+        app: account-service
+    spec:
+      containers:
+        - name: account-service
+          image: account-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://account-db:5432/accountservicebank
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: postgres
